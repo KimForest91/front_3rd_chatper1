@@ -1,111 +1,196 @@
-document.querySelector('#root').innerHTML = `
-<div class="bg-gray-100 min-h-screen flex justify-center">
-    <div class="max-w-md w-full">
-      <header class="bg-blue-600 text-white p-4 sticky top-0">
-        <h1 class="text-2xl font-bold">항해플러스</h1>
-      </header>
+import Router from "./js/router.js";
+import UserPreferences from "./js/userInfo.js";
 
-      <nav class="bg-white shadow-md p-2 sticky top-14">
-        <ul class="flex justify-around">
-          <li><a href="./main.html" class="text-blue-600">홈</a></li>
-          <li><a href="./profile.html" class="text-gray-600">프로필</a></li>
-          <li><a href="#" class="text-gray-600">로그아웃</a></li>
-        </ul>
-      </nav>
 
-      <main class="p-4">
-        <div class="mb-4 bg-white rounded-lg shadow p-4">
-          <textarea class="w-full p-2 border rounded" placeholder="무슨 생각을 하고 계신가요?"></textarea>
-          <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded">게시</button>
-        </div>
 
-        <div class="space-y-4">
+const router = new Router();
 
-          <div class="bg-white rounded-lg shadow p-4">
-            <div class="flex items-center mb-2">
-              <img src="https://via.placeholder.com/40" alt="프로필" class="rounded-full mr-2">
-              <div>
-                <p class="font-bold">홍길동</p>
-                <p class="text-sm text-gray-500">5분 전</p>
-              </div>
-            </div>
-            <p>오늘 날씨가 정말 좋네요. 다들 좋은 하루 보내세요!</p>
-            <div class="mt-2 flex justify-between text-gray-500">
-              <button>좋아요</button>
-              <button>댓글</button>
-              <button>공유</button>
-            </div>
-          </div>
+// HTML 파일을 비동기로 불러오는 함수
+function loadHTML(filePath) {
+  return fetch(filePath).then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.text();
+  });
+}
 
-          <div class="bg-white rounded-lg shadow p-4">
-            <div class="flex items-center mb-2">
-              <img src="https://via.placeholder.com/40" alt="프로필" class="rounded-full mr-2">
-              <div>
-                <p class="font-bold">김철수</p>
-                <p class="text-sm text-gray-500">15분 전</p>
-              </div>
-            </div>
-            <p>새로운 프로젝트를 시작했어요. 열심히 코딩 중입니다!</p>
-            <div class="mt-2 flex justify-between text-gray-500">
-              <button>좋아요</button>
-              <button>댓글</button>
-              <button>공유</button>
-            </div>
-          </div>
+// main 페이지 로드 함수
+function loadMainPage() {
+  loadHTML("./templates/main.html")
+    .then((html) => {
+      document.querySelector("#root").innerHTML = html;
+      setNavEvent();
+      delUserProfile();
+    })
+    .catch((error) => {
+      console.error("Error loading main page:", error);
+    });
+}
 
-          <div class="bg-white rounded-lg shadow p-4">
-            <div class="flex items-center mb-2">
-              <img src="https://via.placeholder.com/40" alt="프로필" class="rounded-full mr-2">
-              <div>
-                <p class="font-bold">이영희</p>
-                <p class="text-sm text-gray-500">30분 전</p>
-              </div>
-            </div>
-            <p>오늘 점심 메뉴 추천 받습니다. 뭐가 좋을까요?</p>
-            <div class="mt-2 flex justify-between text-gray-500">
-              <button>좋아요</button>
-              <button>댓글</button>
-              <button>공유</button>
-            </div>
-          </div>
+// login 페이지 로드 함수
+function loadLoginPage() {
+  loadHTML("./templates/login.html")
+    .then((html) => {
+      document.querySelector("#root").innerHTML = html;
+      setUserProfile()
+    })
+    .catch((error) => {
+      console.error("Error loading login page:", error);
+    });
+}
 
-          <div class="bg-white rounded-lg shadow p-4">
-            <div class="flex items-center mb-2">
-              <img src="https://via.placeholder.com/40" alt="프로필" class="rounded-full mr-2">
-              <div>
-                <p class="font-bold">박민수</p>
-                <p class="text-sm text-gray-500">1시간 전</p>
-              </div>
-            </div>
-            <p>주말에 등산 가실 분 계신가요? 함께 가요!</p>
-            <div class="mt-2 flex justify-between text-gray-500">
-              <button>좋아요</button>
-              <button>댓글</button>
-              <button>공유</button>
-            </div>
-          </div>
+// profile 페이지 로드 함수
+function loadProfilePage() {
+  if(isLoggedIn()) {
+    router.navigateTo("/login");
+    return; 
+  }
 
-          <div class="bg-white rounded-lg shadow p-4">
-            <div class="flex items-center mb-2">
-              <img src="https://via.placeholder.com/40" alt="프로필" class="rounded-full mr-2">
-              <div>
-                <p class="font-bold">정수연</p>
-                <p class="text-sm text-gray-500">2시간 전</p>
-              </div>
-            </div>
-            <p>새로 나온 영화 재미있대요. 같이 보러 갈 사람?</p>
-            <div class="mt-2 flex justify-between text-gray-500">
-              <button>좋아요</button>
-              <button>댓글</button>
-              <button>공유</button>
-            </div>
-          </div>
-        </div>
-      </main>
+  // 로그인 상태인 경우 프로필 페이지 로드
+  loadHTML("./templates/profile.html")
+    .then((html) => {
+      document.querySelector("#root").innerHTML = html;
+      getUserProfile(); // 프로필 정보 가져오기
+      setNavEvent();
+      setUserProfile();
+      delUserProfile();
 
-      <footer class="bg-gray-200 p-4 text-center">
-        <p>&copy; 2024 항해플러스. All rights reserved.</p>
-      </footer>
-    </div>
-  </div>
-`;
+    })
+    .catch((error) => {
+      console.error("Error loading profile page:", error);
+    });
+}
+
+//  error 페이지 로드 함수
+function loadErrorPage() {
+  loadHTML("./templates/error.html")
+    .then((html) => {
+      document.querySelector("#root").innerHTML = html;
+    })
+    .catch((error) => {
+      console.error("Error loading error page:", error);
+    });
+}
+
+// Router 설정
+router.addRoute("/", loadMainPage);
+router.addRoute("/login", loadLoginPage);
+router.addRoute("/profile", loadProfilePage);
+router.addRoute("404", loadErrorPage);
+
+// 초기 로드 처리
+router.handleRoute(window.location.pathname);
+
+// 내비게이션 이벤트 처리
+function setNavEvent() {
+  document.querySelector("nav").addEventListener("click", (e) => {
+    if (e.target.tagName === "A") {
+      e.preventDefault();
+      router.navigateTo(e.target.getAttribute("href"));
+    }
+  });
+}
+
+
+// 프로필 저장이벤트
+function setUserProfile() {
+  document.querySelector(".saveUserProfile").addEventListener("submit", (e) => {
+    // e.preventDefault(); 
+    console.log("profileForm===========", e.target);
+    
+    const profileForm = document.getElementById("profileForm");
+    const loginForm = document.getElementById("loginForm");
+    console.log("profileForm===========", profileForm);
+    console.log("loginForm===========", loginForm);
+    
+    // 폼 제출 기본 동작 방지
+
+    const prefs = new UserPreferences();
+
+
+    if(profileForm) {
+      // 입력값 가져오기
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const bio = document.getElementById("bio").value;
+
+      // console.log("username===========", username);
+      // console.log("email===========", email);
+      // console.log("bio===========", bio);
+
+      // 로컬 스토리지에 저장
+
+      prefs.set("username", username);
+      prefs.set("email", email);
+      prefs.set("bio", bio);
+
+
+      // 저장 완료 메시지 표시
+      alert("프로필이 저장되었습니다!");
+
+    } else if (loginForm) {
+      // 입력값 가져오기
+      const userId = document.getElementById("userId").value;
+      const password = document.getElementById("password").value;
+
+      if(isValidEmail(userId) || isValidPhoneNumber(userId)) {
+        // 로컬 스토리지에 저장
+        prefs.set("userId", userId);
+        prefs.set("password", password);
+        
+        router.navigateTo("/");
+      } else {
+        alert("이메일 또는 전화번호 형식이 아닙니다.");
+      }
+    }
+  });
+}
+
+// 이메일 형식 검증
+function isValidEmail(email) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
+}
+
+// 전화번호 형식 검증
+function isValidPhoneNumber(phone) {
+  const phonePattern = /^\d{2,3}-\d{3,4}-\d{4}$/; // 예: 010-1234-5678
+  return phonePattern.test(phone);
+}
+
+// 프로필 삭제이벤트
+function delUserProfile() {
+  document.querySelector(".delUserProfile").addEventListener("click", (e) => {
+    const prefs = new UserPreferences();
+    prefs.clear();
+    router.navigateTo("/login");
+    alert("프로필이 삭제되었습니다!");
+  });
+}
+
+function getUserProfile() {
+  const prefs = new UserPreferences();
+  const userName = prefs.get("username");
+  const email = prefs.get("email");
+  const bio = prefs.get("bio");
+
+  if(userName) {
+    document.querySelector("#username").value = userName;
+    document.querySelector("#email").value = email;
+    document.querySelector("#bio").value = bio;
+  } else {
+    document.querySelector("#username").value = "홍길동";
+    document.querySelector("#email").value = "hong@example.com";
+    document.querySelector("#bio").value = "안녕하세요. 반갑습니다.";
+  }
+
+
+}
+
+
+// 로그인여부 확인
+function isLoggedIn() {
+  // 예시: 로컬 스토리지에 저장된 사용자 ID가 있는지 확인
+  return localStorage.getItem("userId") !== null;
+}
